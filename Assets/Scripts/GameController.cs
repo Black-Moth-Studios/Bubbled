@@ -60,9 +60,13 @@ public class GameController : MonoBehaviour
         // Update the countdown timer only if there's time remaining
         if (currentTime > 0)
         {
-            currentTime -= Time.deltaTime;  // Decrease the time by the time passed since last frame
-            timerText.text = Mathf.Ceil(currentTime).ToString();  // Update the UI Text to show the time remaining
+            currentTime -= Time.deltaTime;
+            int minutes = Mathf.FloorToInt(currentTime / 60);
+            int seconds = Mathf.FloorToInt(currentTime % 60);
+
+            timerText.text = $"{minutes:00}:{seconds:00}";
         }
+
         else
         {
             FillSummary();
