@@ -19,8 +19,7 @@ public class Player2Controller : MonoBehaviour
     public bool doubleJump;
 
     private int timesBubbled = 0;
-    public TextMeshProUGUI bubbledCount;
-    public TextMeshProUGUI bubbledCountSum;
+    public TextMeshProUGUI[] bubbledCount;
     public Animator anim;
 
     public float shotDelay;  // Delay between shots in seconds
@@ -45,9 +44,7 @@ public class Player2Controller : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-        bubbledCount.text = timesBubbled.ToString();
-        bubbledCountSum.text = timesBubbled.ToString();
+        UpdateText(bubbledCount, timesBubbled);
 
         if(!isStunned)
         {
@@ -111,10 +108,11 @@ public class Player2Controller : MonoBehaviour
 
     void Move()
     {
-        Vector3 movement = new Vector3(Input.GetAxis("Horizontal_P2"), 0f, 0f);
-        transform.position += movement * Time.deltaTime * Speed;
+        float horizontal = Input.GetAxisRaw("Horizontal_P2");
 
-        if(Input.GetAxis("Horizontal_P2") > 0f)
+        rig.linearVelocity = new Vector2(horizontal * Speed, rig.linearVelocity.y);
+
+        if(horizontal > 0)
         {
             anim.SetBool("ringoWalk", true);
             anim.SetBool("ringoIdle", false);
@@ -128,7 +126,7 @@ public class Player2Controller : MonoBehaviour
             transform.eulerAngles = new Vector3(0f,0f,0f);
         }
 
-        if(Input.GetAxis("Horizontal_P2") == 0f)
+        else
         {
             anim.SetBool("ringoWalk", false);
             anim.SetBool("ringoIdle", true);
@@ -230,16 +228,19 @@ public class Player2Controller : MonoBehaviour
         rig.gravityScale = -FloatSpeed;
     }
 
+    void UpdateText(TextMeshProUGUI[] texts, int value)
+    {
+        string valueString = value.ToString();
+      
+        foreach (TextMeshProUGUI text in texts)
+        {
+            text.text = valueString;
+        }
+    }
+
     void OnCollisionEnter2D(Collision2D collision)
     {
-        // Check if the collision is with the Ground
-        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Player"))
-        {
-            //Debug.Log("Player has collided with the Ground!");
-            isJumping = false;
-        }
-
-        else if (collision.gameObject.CompareTag("Projectile"))
+        if (collision.gameObject.CompareTag("Projectile"))
         {
             //Freeze player
             //Debug.Log("Oh não você me acertou");
@@ -247,11 +248,21 @@ public class Player2Controller : MonoBehaviour
         }
         else if (collision.gameObject.CompareTag("Spikes"))
         {
-            //Pop bubble
-            FreePlayer();
+            if(isStunned)
+            {
+                FreePlayer();
+                //LOSE COINS
+                gc.coinCountP2--;
+            }
+        }
+    }
 
-            //LOSE COINS
-            gc.coinCountP2--;
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Player"))
+        {
+            isJumping = false;
+            Debug.Log("No chão");
         }
     }
 

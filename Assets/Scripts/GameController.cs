@@ -8,13 +8,9 @@ public class GameController : MonoBehaviour
     public int coinCountP2;
     public int matchesWonP1 = 0;
     public int matchesWonP2 = 0;
-    public TextMeshProUGUI coinTextP1;
-    public TextMeshProUGUI coinTextP2;
+    public TextMeshProUGUI[] coinTextP1;
+    public TextMeshProUGUI[] coinTextP2;
     public TextMeshProUGUI timerText;
-    public TextMeshProUGUI coinP1Sum;
-    public TextMeshProUGUI coinP2Sum;
-    public TextMeshProUGUI coinP1Vic;
-    public TextMeshProUGUI coinP2Vic;
     public GameObject matchSummary;
     public GameObject p1Won;
     public GameObject p2Won;
@@ -45,8 +41,8 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        coinTextP1.text = coinCountP1.ToString();
-        coinTextP2.text = coinCountP2.ToString();
+        UpdateText(coinTextP1, coinCountP1);
+        UpdateText(coinTextP2, coinCountP2);
 
         if(coinCountP1 < 0)
         {
@@ -64,12 +60,11 @@ public class GameController : MonoBehaviour
             int minutes = Mathf.FloorToInt(currentTime / 60);
             int seconds = Mathf.FloorToInt(currentTime % 60);
 
-            timerText.text = $"{minutes:00}:{seconds:00}";
+            timerText.text = $"{seconds:00}";
         }
 
         else
         {
-            FillSummary();
 
             // Time has run out
             timerText.text = "0";
@@ -90,7 +85,7 @@ public class GameController : MonoBehaviour
             // Go to next match
             if(setEndMatch == true && Input.GetKeyDown(KeyCode.Space))
             {
-                if(coinCountP1 >= coinCountP2)
+                if(coinCountP1 > coinCountP2)
                 {
                     Debug.Log("Player 1 wins!!!");
                     //set P1 victory screen true
@@ -108,25 +103,23 @@ public class GameController : MonoBehaviour
                 
                     matchesWonP2++;
                 }
-
-
-
-                //string currentSceneName = SceneManager.GetActiveScene().name;
-                
-                //SceneManager.LoadScene(currentSceneName);
-                //Time.timeScale = 1;
+                else
+                {
+                    Debug.Log("It's a tie!!!");
+                    matchSummary.SetActive(false);
+                    tie.SetActive(true);
+                }
             }
         }
     }
 
-    void FillSummary()
+    void UpdateText(TextMeshProUGUI[] texts, int value)
     {
-        coinP1Sum.text = coinCountP1.ToString();
-
-        coinP2Sum.text = coinCountP2.ToString();
-
-        coinP1Vic.text = coinCountP1.ToString();
-
-        coinP2Vic.text = coinCountP2.ToString();
+        string valueString = value.ToString();
+      
+        foreach (TextMeshProUGUI text in texts)
+        {
+            text.text = valueString;
+        }
     }
 }

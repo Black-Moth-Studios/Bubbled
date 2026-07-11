@@ -20,8 +20,7 @@ public class PlayerController : MonoBehaviour
     public bool doubleJump;
 
     private int timesBubbled = 0;
-    public TextMeshProUGUI bubbledCount;
-    public TextMeshProUGUI bubbledCountSum;
+    public TextMeshProUGUI[] bubbledCount;
     public Animator anim;
 
     public float shotDelay;  // Delay between shots in seconds
@@ -46,9 +45,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-        bubbledCount.text = timesBubbled.ToString();
-        bubbledCountSum.text = timesBubbled.ToString();
+        UpdateText(bubbledCount, timesBubbled);
 
         if(!isStunned)
         {
@@ -112,24 +109,25 @@ public class PlayerController : MonoBehaviour
 
     void Move()
     {
-        Vector3 movement = new Vector3(Input.GetAxis("Horizontal"), 0f, 0f);
-        transform.position += movement * Time.deltaTime * Speed;
+        float horizontal = Input.GetAxisRaw("Horizontal");
 
-        if(Input.GetAxis("Horizontal") > 0f)
+        rig.linearVelocity = new Vector2(horizontal * Speed, rig.linearVelocity.y);
+
+        if(horizontal > 0f)
         {
             anim.SetBool("axWalk", true);
             anim.SetBool("axIdle", false);
             transform.eulerAngles = new Vector3(0f,0f,0f);
         }
 
-        if(Input.GetAxis("Horizontal") < 0f)
+        if(horizontal < 0f)
         {
             anim.SetBool("axWalk", true);
             anim.SetBool("axIdle", false);
             transform.eulerAngles = new Vector3(0f,180f,0f);
         }
 
-        if(Input.GetAxis("Horizontal") == 0f)
+        else
         {
             anim.SetBool("axWalk", false);
             anim.SetBool("axIdle", true);
@@ -231,28 +229,44 @@ public class PlayerController : MonoBehaviour
         rig.gravityScale = -FloatSpeed;
     }
 
+    void UpdateText(TextMeshProUGUI[] texts, int value)
+    {
+        string valueString = value.ToString();
+      
+        foreach (TextMeshProUGUI text in texts)
+        {
+            text.text = valueString;
+        }
+    }
+
     void OnCollisionEnter2D(Collision2D collision)
     {
-        // Check if the collision is with the Ground
-        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Player"))
-        {
-            //Debug.Log("Player has collided with the Ground!");
-            isJumping = false;
-        }
 
-        else if (collision.gameObject.CompareTag("Projectile"))
+        if (collision.gameObject.CompareTag("Projectile"))
         {
             //Freeze player
             //Debug.Log("Oh não você me acertou");
             StunPlayer();
         }
         else if (collision.gameObject.CompareTag("Spikes"))
-        {
-            //Pop bubble
-            FreePlayer();
+        {   
+            if (isStunned)
+            {
+                //Pop bubble
+                FreePlayer();
 
-            //LOSE COINS
-            gc.coinCountP1--;
+                //LOSE COINS
+                gc.coinCountP1--;
+            }
+        }
+    }
+
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Player"))
+        {
+            isJumping = false;
+            Debug.Log("No chão");
         }
     }
 
