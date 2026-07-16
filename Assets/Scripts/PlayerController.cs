@@ -1,45 +1,63 @@
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    public enum PlayerType {Player1, Player2}
 
+    [Header("Controls")]
+    private PlayerInputActions input;
+    public InputActionMap playerMap;
+    public bool invertShootDirection;
+
+    [Header("Atributes")]
+    public PlayerType player;
     public float Speed;
     public float FloatSpeed;
     public float JumpForce;
     public float escapeAmount = 0f;
+    private int timesBubbled = 0;
+    public float shotDelay; 
+    private float lastShotTime = 0f;
+    private bool isStunned = false;
+    private bool hasBeenRobbed = false;
 
+    [Header("GameObjects")]
     public GameObject escapeBar;
     public GameObject escapeBarFill;
     public GameObject projectilePrefab;
     public GameObject bubbled;
-    public Transform shootPoint;    
-
-    public bool isJumping = false;
-    public bool doubleJump;
-
-    private int timesBubbled = 0;
+    public Transform shootPoint;
     public TextMeshProUGUI[] bubbledCount;
     public Animator anim;
-
-    public float shotDelay;  // Delay between shots in seconds
-    private float lastShotTime = 0f;  // Time of the last shot
-
-    private bool isStunned = false;
-
     private Rigidbody2D rig;
-
     public GameController gc;
-    
-    public CoinSpawner coinSpawner; // Reference to the CoinSpawner
+    public CoinSpawner coinSpawner;
+
+
+    void Awake()
+    {
+        input = new PlayerInputActions();
+        playerMap = player == PlayerType.Player1 ? input.Player1.Get() : input.Player2.Get();
+    }
+
+    void OnEnable()
+    {
+        input.Enable();
+    }
+
+    void OnDisable()
+    {
+        input.Disable();
+    }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
         rig = GetComponent<Rigidbody2D>();
-        
+        anim = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -53,142 +71,124 @@ public class PlayerController : MonoBehaviour
             Jump();
             Shoot();
         }
+
         else
         {
             FillBar();
         }
-        
 
-        if(escapeAmount == 0)
-        {
-            escapeBarFill.transform.localScale = new Vector2(0.05f, 0f);
-        }
-        else if(escapeAmount == 1)
-        {
-            escapeBarFill.transform.localScale = new Vector2(0.05f, 0.1f);
-        }
-        else if(escapeAmount == 2)
-        {
-            escapeBarFill.transform.localScale = new Vector2(0.05f, 0.2f);
-        }
-        else if(escapeAmount == 3)
-        {
-            escapeBarFill.transform.localScale = new Vector2(0.05f, 0.3f);
-        }
-        else if(escapeAmount == 4)
-        {
-            escapeBarFill.transform.localScale = new Vector2(0.05f, 0.4f);
-        }
-        else if(escapeAmount == 5)
-        {
-            escapeBarFill.transform.localScale = new Vector2(0.05f, 0.5f);
-        }
-        else if(escapeAmount == 6)
-        {
-            escapeBarFill.transform.localScale = new Vector2(0.05f, 0.6f);
-        }
-        else if(escapeAmount == 7)
-        {
-            escapeBarFill.transform.localScale = new Vector2(0.05f, 0.7f);
-        }
-        else if(escapeAmount == 8)
-        {
-            escapeBarFill.transform.localScale = new Vector2(0.05f, 0.8f);
-        }
-        else if(escapeAmount == 9)
-        {
-            escapeBarFill.transform.localScale = new Vector2(0.05f, 0.9f);
-        }
-        else if(escapeAmount == 10)
-        {
-            escapeBarFill.transform.localScale = new Vector2(0.05f, 1f);
-            FreePlayer();
-            escapeAmount = 0;
-        }
+        UpdateEscapeBar();
     }
 
-    void Move()
-    {
-        float horizontal = Input.GetAxisRaw("Horizontal");
+    public void Move(){
+        float horizontal = playerMap.FindAction("Move").ReadValue<float>();
 
         rig.linearVelocity = new Vector2(horizontal * Speed, rig.linearVelocity.y);
 
-        if(horizontal > 0f)
-        {
-            anim.SetBool("axWalk", true);
-            anim.SetBool("axIdle", false);
-            transform.eulerAngles = new Vector3(0f,0f,0f);
-        }
+        anim.SetBool("Walk", horizontal != 0);
 
-        if(horizontal < 0f)
+        if(horizontal > 0)
         {
-            anim.SetBool("axWalk", true);
-            anim.SetBool("axIdle", false);
-            transform.eulerAngles = new Vector3(0f,180f,0f);
-        }
+            if(player == PlayerType.Player1)
+            {
+                transform.eulerAngles = Vector3.zero;
+            }
 
-        else
-        {
-            anim.SetBool("axWalk", false);
-            anim.SetBool("axIdle", true);
+            else
+            {
+                transform.eulerAngles = new Vector3(0,180,0);
+            }
         }
-        
+        else if(horizontal < 0)
+        {
+            if(player == PlayerType.Player1)
+            {
+                transform.eulerAngles = new Vector3(0,180,0);
+            }
+
+            else
+            {
+                transform.eulerAngles = Vector3.zero;
+            }
+        }
     }
 
     void Jump()
     {
-        if(Input.GetKeyDown(KeyCode.W))
+        if(playerMap.FindAction("Jump").WasPressedThisFrame())
         {
-            if(!isJumping)
+            if(rig.linearVelocity.y > 0)
             {
-                isJumping = true;
-                //srcJump.clip = sfx1;
-                //srcJump.Play();
-                rig.AddForce(new Vector2(0f, JumpForce), ForceMode2D.Impulse);
-                doubleJump = true;
-                //anim.SetBool("jump", true);
+                rig.linearVelocity = new Vector2(rig.linearVelocity.x, 0f);
             }
-            else if (doubleJump)
-            {
-                //srcJump.clip = sfx1;
-                //srcJump.Play();
-                rig.AddForce(new Vector2(0f, JumpForce), ForceMode2D.Impulse);
-                doubleJump = false;
-            } 
+            
+            rig.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
         }
     }
 
     void Shoot()
     {
-        // Check if enough time has passed since the last shot
-        if (Input.GetKeyDown(KeyCode.E) && Time.time - lastShotTime >= shotDelay)
+        if(playerMap.FindAction("Shoot").WasPressedThisFrame() && Time.time - lastShotTime >= shotDelay)
         {
-            // Update the last shot time
             lastShotTime = Time.time;
 
-            // Instantiate the projectile at the shoot point and give it the correct direction
             GameObject projectile = Instantiate(projectilePrefab, shootPoint.position, Quaternion.identity);
+            
+            Rigidbody2D rb = projectile.GetComponent<Rigidbody2D>();
 
-            // Determine the direction of the projectile
-            Rigidbody2D projectileRb = projectile.GetComponent<Rigidbody2D>();
-            if (transform.eulerAngles.y == 0f) // If facing right
+
+            float direction;
+
+
+            if(invertShootDirection)
             {
-                projectileRb.linearVelocity = new Vector2(10f, 0f);
-            }
-            else // If facing left
-            {
-                projectileRb.linearVelocity = new Vector2(-10f, 0f);
+                if(player == PlayerType.Player1)
+                {
+                    direction = transform.eulerAngles.y == 0 ? -1 : 1;
+                }
+                
+                else
+                {
+                    direction = transform.eulerAngles.y == 0 ? 1 : -1;
+                }
             }
 
-            Destroy(projectile, 5f);  // Destroy after 5 seconds to avoid clutter
+            else
+            {
+                if(player == PlayerType.Player1)
+                {
+                    direction = transform.eulerAngles.y == 0 ? 1 : -1;
+                }
+                
+                else
+                {
+                    direction = transform.eulerAngles.y == 0 ? -1 : 1;
+                }
+            }
+            
+            rb.linearVelocity = new Vector2(direction * 10, 0);
+
+            Destroy(projectile,5);
+        }
+    
+    }
+    
+    void UpdateEscapeBar(){
+        escapeAmount = Mathf.Clamp(escapeAmount, 0, 10);
+
+        escapeBarFill.transform.localScale = new Vector2(0.05f, escapeAmount/ 10f);
+
+        if (escapeAmount >= 10)
+        {
+            FreePlayer();
+            escapeAmount = 0;
         }
     }
 
     void FillBar()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (playerMap.FindAction("Escape").WasPressedThisFrame())
         {
-            Debug.Log("apertou espaço");
             escapeAmount += 1;
         }
         
@@ -197,30 +197,54 @@ public class PlayerController : MonoBehaviour
 
     void StunPlayer()
     {
-        //block any action
         isStunned = true;
+        hasBeenRobbed = false;
 
-        //activate escape bar
         escapeBar.SetActive(true);
         bubbled.SetActive(true);
 
         timesBubbled++;
 
-        //float upwards
         FloatUp();
     }
 
     void FreePlayer()
     {
-        //free player action
         isStunned = false;
+        hasBeenRobbed = false;
 
-        //deactivate escape bar
         escapeBar.SetActive(false);
         bubbled.SetActive(false);
 
-        //Free fall
         rig.gravityScale = 1f;
+    }
+
+    public void StealCoin(PlayerController thief)
+    {
+        if(!isStunned || hasBeenRobbed)
+            return;
+        
+        hasBeenRobbed = true;
+
+        if(player == PlayerType.Player1)
+        {
+            if(gc.coinCountP1 > 0)
+            {
+                gc.coinCountP1--;
+                gc.coinCountP2++;
+            }
+        }
+
+        else
+        {
+            if(gc.coinCountP2 > 0)
+            {
+                gc.coinCountP2--;
+                gc.coinCountP1++;
+            }
+        }
+
+        FreePlayer();
     }
 
     void FloatUp()
@@ -241,32 +265,36 @@ public class PlayerController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            PlayerController otherPlayer = collision.gameObject.GetComponent<PlayerController>();
+
+            if (otherPlayer != null)
+            {
+                otherPlayer.StealCoin(this);
+            }
+        }
 
         if (collision.gameObject.CompareTag("Projectile"))
         {
-            //Freeze player
-            //Debug.Log("Oh não você me acertou");
             StunPlayer();
         }
+
         else if (collision.gameObject.CompareTag("Spikes"))
         {   
             if (isStunned)
             {
-                //Pop bubble
                 FreePlayer();
 
-                //LOSE COINS
-                gc.coinCountP1--;
+                if(player == PlayerType.Player1)
+                {
+                    gc.coinCountP1--;
+                }
+                else
+                {
+                    gc.coinCountP2--;
+                }
             }
-        }
-    }
-
-    void OnCollisionStay2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Player"))
-        {
-            isJumping = false;
-            Debug.Log("No chão");
         }
     }
 
@@ -275,7 +303,16 @@ public class PlayerController : MonoBehaviour
         if(other.gameObject.CompareTag("Coin"))
         {
             Destroy(other.gameObject);
-            gc.coinCountP1++;
+
+            if(player == PlayerType.Player1)
+            {
+                gc.coinCountP1++;
+            }
+            else
+            {
+                gc.coinCountP2++;
+            }
+            
             coinSpawner.CoinCollected();
         }
     }
