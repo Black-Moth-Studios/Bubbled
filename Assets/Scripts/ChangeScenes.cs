@@ -8,11 +8,6 @@ public class ChangeScenes : MonoBehaviour
         SceneManager.LoadScene("SampleScene");
     }
 
-    public void GoToControls()
-    {
-        SceneManager.LoadScene("Controls");
-    }
-
     public void QuitGame()
     {
         Application.Quit();
