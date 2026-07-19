@@ -2,15 +2,19 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Users;
 
 public class PlayerController : MonoBehaviour
 {
     public enum PlayerType {Player1, Player2}
 
     [Header("Controls")]
-    private PlayerInputActions input;
-    public InputActionMap playerMap;
+    private PlayerInput playerInput;
     public bool invertShootDirection;
+    private InputAction moveAction;
+    private InputAction jumpAction;
+    private InputAction shootAction;
+    private InputAction escapeAction;
 
     [Header("Atributes")]
     public PlayerType player;
@@ -39,18 +43,12 @@ public class PlayerController : MonoBehaviour
 
     void Awake()
     {
-        input = new PlayerInputActions();
-        playerMap = player == PlayerType.Player1 ? input.Player1.Get() : input.Player2.Get();
-    }
+        playerInput = GetComponent<PlayerInput>();
 
-    void OnEnable()
-    {
-        input.Enable();
-    }
-
-    void OnDisable()
-    {
-        input.Disable();
+        moveAction = playerInput.currentActionMap.FindAction("Move");
+        jumpAction = playerInput.currentActionMap.FindAction("Jump");
+        shootAction = playerInput.currentActionMap.FindAction("Shoot");
+        escapeAction = playerInput.currentActionMap.FindAction("Escape");
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -81,7 +79,7 @@ public class PlayerController : MonoBehaviour
     }
 
     public void Move(){
-        float horizontal = playerMap.FindAction("Move").ReadValue<float>();
+        float horizontal = moveAction.ReadValue<float>();
 
         rig.linearVelocity = new Vector2(horizontal * Speed, rig.linearVelocity.y);
 
@@ -115,7 +113,7 @@ public class PlayerController : MonoBehaviour
 
     void Jump()
     {
-        if(playerMap.FindAction("Jump").WasPressedThisFrame())
+        if(jumpAction.WasPressedThisFrame())
         {
             if(rig.linearVelocity.y > 0)
             {
@@ -128,7 +126,7 @@ public class PlayerController : MonoBehaviour
 
     void Shoot()
     {
-        if(playerMap.FindAction("Shoot").WasPressedThisFrame() && Time.time - lastShotTime >= shotDelay)
+        if(shootAction.WasPressedThisFrame() && Time.time - lastShotTime >= shotDelay)
         {
             lastShotTime = Time.time;
 
@@ -187,7 +185,7 @@ public class PlayerController : MonoBehaviour
 
     void FillBar()
     {
-        if (playerMap.FindAction("Escape").WasPressedThisFrame())
+        if (escapeAction.WasPressedThisFrame())
         {
             escapeAmount += 1;
         }
@@ -226,22 +224,10 @@ public class PlayerController : MonoBehaviour
         
         hasBeenRobbed = true;
 
-        if(player == PlayerType.Player1)
+        if (gc.GetCoins(player) > 0)
         {
-            if(gc.coinCountP1 > 0)
-            {
-                gc.coinCountP1--;
-                gc.coinCountP2++;
-            }
-        }
-
-        else
-        {
-            if(gc.coinCountP2 > 0)
-            {
-                gc.coinCountP2--;
-                gc.coinCountP1++;
-            }
+            gc.RemoveCoin(player);
+            gc.AddCoin(thief.player);
         }
 
         FreePlayer();
@@ -285,15 +271,7 @@ public class PlayerController : MonoBehaviour
             if (isStunned)
             {
                 FreePlayer();
-
-                if(player == PlayerType.Player1)
-                {
-                    gc.coinCountP1--;
-                }
-                else
-                {
-                    gc.coinCountP2--;
-                }
+                gc.RemoveCoin(player);
             }
         }
     }
@@ -303,16 +281,7 @@ public class PlayerController : MonoBehaviour
         if(other.gameObject.CompareTag("Coin"))
         {
             Destroy(other.gameObject);
-
-            if(player == PlayerType.Player1)
-            {
-                gc.coinCountP1++;
-            }
-            else
-            {
-                gc.coinCountP2++;
-            }
-            
+            gc.AddCoin(player);
             coinSpawner.CoinCollected();
         }
     }

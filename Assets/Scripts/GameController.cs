@@ -122,4 +122,29 @@ public class GameController : MonoBehaviour
             text.text = valueString;
         }
     }
+
+    public int GetCoins(PlayerController.PlayerType player)
+    {
+        if(player == PlayerController.PlayerType.Player1)
+            return coinCountP1;
+        
+        else
+            return coinCountP2;
+    }
+
+    public void AddCoin(PlayerController.PlayerType player, int amount = 1)
+    {
+        if (player == PlayerController.PlayerType.Player1)
+            coinCountP1 += amount;
+        else
+            coinCountP2 += amount;
+    }
+    
+    public void RemoveCoin(PlayerController.PlayerType player, int amount = 1)
+    {
+        if (player == PlayerController.PlayerType.Player1)
+            coinCountP1 = Mathf.Max(0, coinCountP1 - amount);
+        else
+            coinCountP2 = Mathf.Max(0, coinCountP2 - amount);
+    }
 }
