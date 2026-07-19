@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 9149025013888106155}
   - component: {fileID: 3424186902154597326}
   - component: {fileID: 1363408722023728060}
+  - component: {fileID: 3001922121663045317}
   m_Layer: 0
   m_Name: Player 2
   m_TagString: Player
@@ -195,10 +196,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b998e0b180ad7be40b9bf3fbe2946769, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  horizontalInput: Horizontal_P2
-  jumpInput: Jump_P2
-  shootInput: Shoot_P2
-  escapeInput: Escape_P2
   invertShootDirection: 0
   player: 1
   Speed: 5
@@ -218,6 +215,72 @@ MonoBehaviour:
   anim: {fileID: 3424186902154597326}
   gc: {fileID: 0}
   coinSpawner: {fileID: 0}
+--- !u!114 &3001922121663045317
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 571245965557130073}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
+  m_Actions: {fileID: -944628639613478452, guid: 462768cd43bb75d4b9bb22e6e8160af1, type: 3}
+  m_NotificationBehavior: 0
+  m_UIInputModule: {fileID: 0}
+  m_DeviceLostEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_DeviceRegainedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ControlsChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
+  m_ActionEvents:
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: e42cb196-0d2e-480b-b043-17e8ddc62e22
+    m_ActionName: 'Player1/Move[/Keyboard/a,/Keyboard/d,/XInputControllerWindows/dpad/left,/XInputControllerWindows1/dpad/left,/XInputControllerWindows/dpad/right,/XInputControllerWindows1/dpad/right,/XInputControllerWindows/leftStick/x,/XInputControllerWindows1/leftStick/x]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 3727d392-dc6f-42d0-bff0-27bbbf3d4308
+    m_ActionName: 'Player1/Jump[/Keyboard/w,/XInputControllerWindows/buttonSouth,/XInputControllerWindows1/buttonSouth]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 6e69894c-5a4b-4cfa-b550-3711a55c66ce
+    m_ActionName: 'Player1/Shoot[/Keyboard/e,/XInputControllerWindows/buttonWest,/XInputControllerWindows1/buttonWest]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: b0f9390f-9e6d-4359-9f45-8009d3076fd8
+    m_ActionName: 'Player1/Escape[/Keyboard/space,/XInputControllerWindows/buttonEast,/XInputControllerWindows1/buttonEast]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 8c79a9d4-e4f9-4469-9052-a9c559a41221
+    m_ActionName: 'Player2/Move[/Keyboard/j,/Keyboard/l,/XInputControllerWindows/dpad/left,/XInputControllerWindows1/dpad/left,/XInputControllerWindows/dpad/right,/XInputControllerWindows1/dpad/right,/XInputControllerWindows/leftStick/x,/XInputControllerWindows1/leftStick/x]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 263a2e2f-5c34-48e1-85cf-496deb132b05
+    m_ActionName: 'Player2/Jump[/Keyboard/i,/XInputControllerWindows/buttonSouth,/XInputControllerWindows1/buttonSouth]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: e0756f20-8135-45ea-8c7c-48a5d1609090
+    m_ActionName: 'Player2/Shoot[/Keyboard/o,/XInputControllerWindows/buttonWest,/XInputControllerWindows1/buttonWest]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 326a95d6-fa3b-4226-9e7e-d7f8b3aaa768
+    m_ActionName: 'Player2/Escape[/Keyboard/enter,/XInputControllerWindows/buttonEast,/XInputControllerWindows1/buttonEast]'
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: b11de72d-9e69-4476-a731-5c4e2fe79e7d
+    m_ActionName: 'UI/Pause[/Keyboard/escape,/XInputControllerWindows/start,/XInputControllerWindows1/start]'
+  m_NeverAutoSwitchControlSchemes: 0
+  m_DefaultControlScheme: Gameplay
+  m_DefaultActionMap: Player2
+  m_SplitScreenIndex: -1
+  m_Camera: {fileID: 0}
 --- !u!1 &2712035381593435039
 GameObject:
   m_ObjectHideFlags: 0
